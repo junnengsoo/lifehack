@@ -12,3 +12,5 @@ Compile Contracts:
 
 Run Migrations:
 `truffle migrate --reset`
+
+Run Ganache locally, check for host and port number and adjust `truffle-config.js` accordingly.
