@@ -27,4 +27,10 @@ contract ContentRegistry {
     function getTimestamp(string memory _hash) public view returns (uint256) {
         return contents[_hash].timestamp;
     }
+
+    function getContentDetails(string memory _hash) public view returns (string memory, address, uint256) {
+        Content memory content = contents[_hash];
+        require(content.timestamp != 0, "Content not found"); // Ensure the content exists
+        return (content.hash, content.owner, content.timestamp);
+    }
 }

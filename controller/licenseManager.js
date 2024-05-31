@@ -1,5 +1,4 @@
 const Web3 = require('web3');
-const contentRegistry = require('./contentRegistry');
 
 // Web3 setup
 const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
@@ -17,20 +16,27 @@ async function createLicenseTemplate(contentHash, startDate, endDate, commercial
 }
 
 // Function to obtain a license
-async function obtainLicense(contentHash) {
+async function obtainLicense(contentHash, templateId) {
     const accounts = await web3.eth.getAccounts();
     const licenseTemplate = await licenseManager.methods.licenseTemplates(contentHash).call();
-    await licenseManager.methods.obtainLicense(contentHash).send({ from: accounts[0], value: licenseTemplate.licenseFee });
+    await licenseManager.methods.obtainLicense(contentHash, templateId).send({ from: accounts[0], value: licenseTemplate[templateId].licenseFee });
 }
 
 // Function to pay royalty
-async function payRoyalty(contentHash, amount) {
+async function payRoyalty(contentHash, licenseIndex, amount) {
     const accounts = await web3.eth.getAccounts();
-    await licenseManager.methods.payRoyalty(contentHash).send({ from: accounts[0], value: amount });
+    await licenseManager.methods.payRoyalty(contentHash, licenseIndex).send({ from: accounts[0], value: amount });
+}
+
+// Function to get all licenses for a specific content and user
+async function getAllLicenses(contentHash, userAddress) {
+    const licenses = await licenseManager.methods.getAllLicenses(contentHash, userAddress).call();
+    return licenses;
 }
 
 module.exports = {
     createLicenseTemplate,
     obtainLicense,
-    payRoyalty
+    payRoyalty,
+    getAllLicenses
 };
