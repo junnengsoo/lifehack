@@ -44,6 +44,10 @@ router.post('/register', upload.single('image'), async (req, res) => {
         // Register the content on the blockchain
         await registerContent(imageHash);
 
+        // Save the image info to the database
+        const newImage = new Image({ hash: imageHash, path: destPath });
+        await newImage.save();
+
         res.status(200).json({ message: 'Content registered successfully', hash: imageHash });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -118,7 +122,7 @@ router.post('/creator-contents', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
+// API to check similarity
 router.post('/check-similarity', upload.single('image'), async (req, res) => {
     const filePath = req.file.path;
 
@@ -140,10 +144,20 @@ router.post('/check-similarity', upload.single('image'), async (req, res) => {
     }
 });
 
-// API to get all licenses for a specific content
+// API to get ABI
+router.get('/abi', (req, res) => {
+    try {
+        const abi = getContentRegistryABI();
+        const transformedAbi = transformABI(abi);
+        res.status(200).json(transformedAbi);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+  // API to get all licenses for a specific content
 router.post('/licenses-for-content', async (req, res) => {
     const { contentHash } = req.body;
-
     try {
         const licenses = await getLicensesForContent(contentHash);
         res.status(200).json(licenses);
