@@ -1,4 +1,4 @@
-// contracts/ContentRegistry.sol
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 contract ContentRegistry {
@@ -18,5 +18,13 @@ contract ContentRegistry {
 
         contents[_hash] = Content(_hash, msg.sender, block.timestamp);
         emit ContentRegistered(_hash, msg.sender, block.timestamp);
+    }
+
+    function getOwner(string memory _hash) public view returns (address) {
+        return contents[_hash].owner;
+    }
+
+    function getTimestamp(string memory _hash) public view returns (uint256) {
+        return contents[_hash].timestamp;
     }
 }
