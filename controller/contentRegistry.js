@@ -1,4 +1,9 @@
 const Web3 = require('web3');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
+const Jimp = require('jimp');
+const Image = require('../models/Image'); // Import the Image model
 
 // Web3 setup
 const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
@@ -65,10 +70,43 @@ function getContentRegistryABI() {
     return contentRegistryABI;
 }
 
+async function checkImageSimilarity(filePath) {
+    const targetImage = await Jimp.read(filePath);
+    const targetHash = await targetImage.hash();
+
+    const images = await Image.find();
+
+    let mostSimilar = null;
+    let highestSimilarity = 0;
+
+    for (const image of images) {
+        const dbImage = await Jimp.read(image.filePath);
+        const dbHash = await dbImage.hash();
+
+        const similarity = Jimp.distance(targetImage, dbImage);
+        if (similarity > highestSimilarity) {
+            highestSimilarity = similarity;
+            mostSimilar = image;
+        }
+    }
+
+    return { mostSimilar, highestSimilarity };
+}
+
+async function getRegisteredImages() {
+    // This function should fetch registered images from the blockchain
+    return [
+        // Example format
+        { filePath: 'path/to/image1.jpg' },
+        { filePath: 'path/to/image2.jpg' }
+    ];
+}
+
 module.exports = {
     getContentRegistryABI,
     registerContent,
     checkOwnership,
     contentRegistryABI,
     transformABI,
+    checkImageSimilarity
 };
