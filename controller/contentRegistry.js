@@ -9,6 +9,36 @@ const contentRegistryAddress = require('../build/contracts/ContentRegistry.json'
 
 const contentRegistry = new web3.eth.Contract(contentRegistryABI, contentRegistryAddress);
 
+console.log(contentRegistryABI)
+
+// Function to generate image hash
+function generateImageHash(filePath) {
+    const fileBuffer = fs.readFileSync(filePath);
+    const hashSum = crypto.createHash('sha256');
+    hashSum.update(fileBuffer);
+    return hashSum.digest('hex');
+}
+
+function transformABI(abi) {
+    return abi.map(item => {
+        if (item.type === 'function') {
+            return {
+                name: item.name,
+                inputs: item.inputs.map(input => `${input.type} ${input.name}`).join(', '),
+                outputs: item.outputs.map(output => output.type).join(', '),
+                stateMutability: item.stateMutability
+            };
+        } else if (item.type === 'event') {
+            return {
+                name: item.name,
+                inputs: item.inputs.map(input => `${input.type} ${input.name}`).join(', '),
+                anonymous: item.anonymous
+            };
+        }
+        return item;
+    });
+}
+
 // Function to register content
 async function registerContent(imageHash) {
     const accounts = await web3.eth.getAccounts();

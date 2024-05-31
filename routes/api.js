@@ -3,8 +3,9 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { registerContent, getContentDetails } = require('../controller/contentRegistry');
 const { createLicenseTemplate, obtainLicense, payRoyalty } = require('../controller/licenseManager');
+const { registerContent, getContentDetails, contentRegistryABI } = require('../controller/contentRegistry');
+
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
@@ -20,6 +21,11 @@ function generateImageHash(filePath) {
 // Health check endpoint
 router.get('/health', (req, res) => {
     res.status(200).json({ message: 'Backend is working' });
+});
+
+// Endpoint to get ABI
+router.get('/abi', (req, res) => {
+    res.status(200).json(contentRegistryABI);
 });
 
 // API to register content
@@ -105,6 +111,17 @@ router.post('/pay-royalty', async (req, res) => {
     try {
         await payRoyalty(contentHash, amount);
         res.status(200).json({ message: 'Royalty paid successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// API to get ABI
+router.get('/abi', (req, res) => {
+    try {
+        const abi = getContentRegistryABI();
+        const transformedAbi = transformABI(abi);
+        res.status(200).json(transformedAbi);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

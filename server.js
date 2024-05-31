@@ -1,6 +1,8 @@
 // server.js
 const express = require('express');
 const bodyParser = require('body-parser');
+const path = require('path');
+
 const apiRoutes = require('./routes/api');
 
 const app = express();
@@ -12,6 +14,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api', apiRoutes);
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Start the server
 app.listen(port, () => {
