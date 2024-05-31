@@ -3,7 +3,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 
 // Web3 setup
-const web3 = new Web3(Web3.givenProvider || 'http://localhost:8545');
+const web3 = new Web3(Web3.givenProvider || 'http://localhost:7545');
 
 // Load ABI and contract address
 const contentRegistryABI = require('../build/contracts/ContentRegistry.json').abi;
