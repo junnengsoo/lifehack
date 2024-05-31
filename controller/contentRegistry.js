@@ -64,14 +64,10 @@ async function registerContent(imageHash) {
     return imageHash;
 }
 
-// Function to check ownership
-async function checkOwnership(imageHash) {
-    const ownerAddress = await contentRegistry.methods.getOwner(imageHash).call();
-    return { ownerAddress, imageHash };
-}
-
-function getContentRegistryABI() {
-    return contentRegistryABI;
+// Function to get content details
+async function getContentDetails(imageHash) {
+    const content = await contentRegistry.methods.getContentDetails(imageHash).call();
+    return [content[0], content[1], content[2]]; // Return an array of values
 }
 // Function to check image similarity
 // Function to check image similarity
@@ -122,11 +118,11 @@ function compareImages(image1Path, image2Path) {
 }
 
 module.exports = {
-    getContentRegistryABI,
     registerContent,
     checkOwnership,
     contentRegistryABI,
     transformABI,
     checkImageSimilarity,
-    getRegisteredImages
+    getRegisteredImages,
+    getContentDetails,
 };
