@@ -1,14 +1,9 @@
 const Web3 = require('web3');
-<<<<<<< HEAD
-const fs = require('fs');
-const crypto = require('crypto');
-=======
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const Jimp = require('jimp');
 const Image = require('../models/Image'); // Import the Image model
->>>>>>> 47cee8f07e204aa8a749dd9f448920fb0a9f4c58
 
 // Web3 setup
 const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
@@ -61,7 +56,6 @@ async function getContentDetails(imageHash) {
     return [content[0], content[1], content[2]]; // Return an array of values
 }
 
-<<<<<<< HEAD
 // Function to get all contents for a creator
 async function getCreatorContents(creatorAddress) {
     const contents = await contentRegistry.methods.getCreatorContents(creatorAddress).call();
@@ -72,7 +66,7 @@ async function getCreatorContents(creatorAddress) {
 async function getAllContents() {
     const contents = await contentRegistry.methods.getAllContents().call();
     return contents;
-=======
+}
 async function checkImageSimilarity(filePath) {
     const targetImage = await Jimp.read(filePath);
     const targetHash = await targetImage.hash();
@@ -103,15 +97,13 @@ async function getRegisteredImages() {
         { filePath: 'path/to/image1.jpg' },
         { filePath: 'path/to/image2.jpg' }
     ];
->>>>>>> 47cee8f07e204aa8a749dd9f448920fb0a9f4c58
 }
 
 module.exports = {
     registerContent,
-    checkOwnership,
     contentRegistryABI,
     transformABI,
-    checkImageSimilarity
+    checkImageSimilarity,
     getContentDetails,
     getCreatorContents,
     getAllContents
