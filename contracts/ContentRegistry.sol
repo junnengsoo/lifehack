@@ -9,6 +9,7 @@ contract ContentRegistry {
     }
 
     mapping(string => Content) public contents;
+    mapping(address => string[]) public creatorContents; // Maps creator address to their content hashes
 
     event ContentRegistered(string hash, address owner, uint256 timestamp);
 
@@ -17,6 +18,7 @@ contract ContentRegistry {
         require(contents[_hash].timestamp == 0, "Content already registered");
 
         contents[_hash] = Content(_hash, msg.sender, block.timestamp);
+        creatorContents[msg.sender].push(_hash); // Add content hash to the creator's list
         emit ContentRegistered(_hash, msg.sender, block.timestamp);
     }
 
@@ -32,5 +34,9 @@ contract ContentRegistry {
         Content memory content = contents[_hash];
         require(content.timestamp != 0, "Content not found"); // Ensure the content exists
         return (content.hash, content.owner, content.timestamp);
+    }
+
+    function getCreatorContents(address _creator) public view returns (string[] memory) {
+        return creatorContents[_creator];
     }
 }

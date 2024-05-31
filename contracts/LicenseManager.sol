@@ -3,15 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./ContentRegistry.sol";
 
-/**
- * @title LicenseManager
- * @dev Manages the creation of license templates and the issuance of licenses for digital content.
- * Allows content owners to create license templates and users to obtain licenses automatically.
- */
 contract LicenseManager {
-    /**
-     * @dev Represents a license issued for a specific content.
-     */
     struct License {
         string contentHash;
         address licensee;
@@ -25,9 +17,6 @@ contract LicenseManager {
         string attributionText;
     }
 
-    /**
-     * @dev Represents a license template created by the content owner.
-     */
     struct LicenseTemplate {
         uint256 templateId;
         address owner;
@@ -41,24 +30,13 @@ contract LicenseManager {
         string attributionText;
     }
 
-    /**
-     * @dev Maps content hashes to arrays of license templates.
-     */
     mapping(string => LicenseTemplate[]) public licenseTemplates;
-
-    /**
-     * @dev Maps content hashes and user addresses to their respective licenses. This supports multiple licenses for the same content hash.
-     */
     mapping(string => mapping(address => License[])) public licenses;
+    mapping(string => mapping(uint256 => License[])) public templateLicenses; // New: stores licenses for each template
+    mapping(address => string[]) public userLicenses;
 
-    /**
-     * @dev Instance of the ContentRegistry contract to verify content ownership.
-     */
     ContentRegistry contentRegistry;
 
-    /**
-     * @dev Emitted when a license template is created.
-     */
     event LicenseTemplateCreated(
         string contentHash,
         uint256 templateId,
@@ -73,9 +51,6 @@ contract LicenseManager {
         string attributionText
     );
 
-    /**
-     * @dev Emitted when a license is issued.
-     */
     event LicenseIssued(
         string contentHash,
         address licensee,
@@ -89,21 +64,12 @@ contract LicenseManager {
         string attributionText
     );
 
-    /**
-     * @dev Emitted when a royalty is paid.
-     */
     event RoyaltyPaid(string contentHash, address licensee, uint256 amount);
 
-    /**
-     * @dev Initializes the contract by setting the address of the ContentRegistry contract.
-     */
     constructor(address _contentRegistryAddress) {
         contentRegistry = ContentRegistry(_contentRegistryAddress);
     }
 
-    /**
-     * @dev Creates a license template for a specific content.
-     */
     function createLicenseTemplate(
         string memory _contentHash,
         uint256 _startDate,
@@ -148,16 +114,13 @@ contract LicenseManager {
         );
     }
 
-    /**
-     * @dev Allows a user to obtain a license for a specific content by paying the license fee.
-     */
     function obtainLicense(string memory _contentHash, uint256 templateId) public payable {
         require(templateId < licenseTemplates[_contentHash].length, "Invalid template ID");
         LicenseTemplate memory template = licenseTemplates[_contentHash][templateId];
         require(template.owner != address(0), "License template not found");
         require(msg.value >= template.licenseFee, "Insufficient license fee");
 
-        licenses[_contentHash][msg.sender].push(License({
+        License memory newLicense = License({
             contentHash: _contentHash,
             licensee: msg.sender,
             startDate: block.timestamp,
@@ -168,7 +131,11 @@ contract LicenseManager {
             licenseFee: template.licenseFee,
             royalty: template.royalty,
             attributionText: template.attributionText
-        }));
+        });
+
+        licenses[_contentHash][msg.sender].push(newLicense);
+        templateLicenses[_contentHash][templateId].push(newLicense); // New: Add to template licenses
+        userLicenses[msg.sender].push(_contentHash);
 
         emit LicenseIssued(
             _contentHash,
@@ -186,9 +153,6 @@ contract LicenseManager {
         payable(template.owner).transfer(msg.value);
     }
 
-    /**
-     * @dev Allows a licensee to pay the royalty fee for a specific content.
-     */
     function payRoyalty(string memory _contentHash, uint256 licenseIndex) public payable {
         require(licenseIndex < licenses[_contentHash][msg.sender].length, "Invalid license index");
         License memory license = licenses[_contentHash][msg.sender][licenseIndex];
@@ -199,18 +163,48 @@ contract LicenseManager {
         emit RoyaltyPaid(_contentHash, msg.sender, msg.value);
     }
 
-    /**
-     * @dev Retrieves the license details for a specific content and user.
-     */
     function getLicense(string memory _contentHash, address licensee, uint256 licenseIndex) public view returns (License memory) {
         require(licenseIndex < licenses[_contentHash][licensee].length, "Invalid license index");
         return licenses[_contentHash][licensee][licenseIndex];
     }
 
-    /**
-     * @dev Retrieves all licenses for a specific content and user.
-     */
     function getAllLicenses(string memory _contentHash, address licensee) public view returns (License[] memory) {
         return licenses[_contentHash][licensee];
+    }
+
+    function getLicensesForContent(string memory _contentHash) public view returns (License[] memory) {
+        uint256 totalLicenses;
+        for (uint256 i = 0; i < licenseTemplates[_contentHash].length; i++) {
+            totalLicenses += licenses[_contentHash][licenseTemplates[_contentHash][i].owner].length;
+        }
+        License[] memory allLicenses = new License[](totalLicenses);
+        uint256 index;
+        for (uint256 i = 0; i < licenseTemplates[_contentHash].length; i++) {
+            address owner = licenseTemplates[_contentHash][i].owner;
+            for (uint256 j = 0; j < licenses[_contentHash][owner].length; j++) {
+                allLicenses[index++] = licenses[_contentHash][owner][j];
+            }
+        }
+        return allLicenses;
+    }
+
+    function getUserLicenses(address userAddress) public view returns (License[] memory) {
+        uint256 totalLicenses;
+        for (uint256 i = 0; i < userLicenses[userAddress].length; i++) {
+            totalLicenses += licenses[userLicenses[userAddress][i]][userAddress].length;
+        }
+        License[] memory allLicenses = new License[](totalLicenses);
+        uint256 index;
+        for (uint256 i = 0; i < userLicenses[userAddress].length; i++) {
+            string memory contentHash = userLicenses[userAddress][i];
+            for (uint256 j = 0; j < licenses[contentHash][userAddress].length; j++) {
+                allLicenses[index++] = licenses[contentHash][userAddress][j];
+            }
+        }
+        return allLicenses;
+    }
+
+    function getLicensesForTemplate(string memory _contentHash, uint256 templateId) public view returns (License[] memory) {
+        return templateLicenses[_contentHash][templateId];
     }
 }
