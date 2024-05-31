@@ -1,9 +1,13 @@
 const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
+<<<<<<< Updated upstream
 const path = require('path');
 const crypto = require('crypto');
 const { registerContent, checkOwnership } = require('../controller/contentRegistry');
+=======
+const { registerContent, checkOwnership, contentRegistryABI } = require('../controller/blockchain');
+>>>>>>> Stashed changes
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
@@ -19,6 +23,11 @@ function generateImageHash(filePath) {
 // Health check endpoint
 router.get('/health', (req, res) => {
     res.status(200).json({ message: 'Backend is working' });
+});
+
+// Endpoint to get ABI
+router.get('/abi', (req, res) => {
+    res.status(200).json(contentRegistryABI);
 });
 
 // API to register content
@@ -75,4 +84,19 @@ router.post('/check-ownership', upload.single('image'), async (req, res) => {
     // }
 });
 
+<<<<<<< Updated upstream
 module.exports = router;
+=======
+// API to get ABI
+router.get('/abi', (req, res) => {
+    try {
+        const abi = getContentRegistryABI();
+        const transformedAbi = transformABI(abi);
+        res.status(200).json(transformedAbi);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+module.exports = router;
+>>>>>>> Stashed changes
