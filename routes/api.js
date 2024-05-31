@@ -3,9 +3,9 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { registerContent, checkOwnership, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
+const { registerContent, getContentDetails, checkOwnership, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
 const Image = require('../models/Image'); // Import the Image model
-
+const { createLicenseTemplate, obtainLicense, payRoyalty } = require('../controller/licenseManager');
 
 
 const router = express.Router();
@@ -47,17 +47,16 @@ router.post('/register', upload.single('image'), async (req, res) => {
         res.status(200).json({ message: 'Content registered successfully', hash: imageHash });
     } catch (error) {
         res.status(500).json({ error: error.message });
-    } 
-    // finally {
-    //     // Clean up the file after processing
-    //     fs.unlinkSync(destPath);
-    // }
+    } finally {
+        // Clean up the file after processing
+        fs.unlinkSync(destPath);
+    }
 });
 
-// API to check ownership
-router.post('/check-ownership', upload.single('image'), async (req, res) => {
+// API to get content details
+router.post('/content-details', upload.single('image'), async (req, res) => {
     const filePath = req.file.path;
-    const destPath = path.join(__dirname, '../uploads/', req.file.filename);
+    const destPath = path.join(__dirname, '../uploads/', req.file.originalname);
 
     try {
         // Move the file to the desired directory
@@ -66,21 +65,56 @@ router.post('/check-ownership', upload.single('image'), async (req, res) => {
         // Generate hash from the image
         const imageHash = generateImageHash(destPath);
 
-        // Check ownership on the blockchain
-        const { ownerAddress } = await checkOwnership(imageHash);
+        // Get content details from the blockchain
+        const [hash, owner, timestamp] = await getContentDetails(imageHash);
 
-        if (ownerAddress !== '0x0000000000000000000000000000000000000000') {
-            res.status(200).json({ message: 'Owner found', owner: ownerAddress, hash: imageHash });
+        if (owner !== '0x0000000000000000000000000000000000000000') {
+            res.status(200).json({ message: 'Content found', hash, owner, timestamp });
         } else {
-            res.status(404).json({ message: 'No owner found for the content', hash: imageHash });
+            res.status(404).json({ message: 'No content found for the given hash', hash });
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
-    } 
-    // finally {
-    //     // Clean up the file after processing
-    //     fs.unlinkSync(destPath);
-    // }
+    } finally {
+        // Clean up the file after processing
+        fs.unlinkSync(destPath);
+    }
+});
+
+// API to create a license template
+router.post('/create-license-template', async (req, res) => {
+    const { contentHash, startDate, endDate, commercialUse, modificationAllowed, exclusive, licenseFee, royalty, attributionText } = req.body;
+
+    try {
+        await createLicenseTemplate(contentHash, startDate, endDate, commercialUse, modificationAllowed, exclusive, licenseFee, royalty, attributionText);
+        res.status(200).json({ message: 'License template created successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// API to obtain a license
+router.post('/obtain-license', async (req, res) => {
+    const { contentHash } = req.body;
+
+    try {
+        await obtainLicense(contentHash);
+        res.status(200).json({ message: 'License obtained successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// API to pay royalty
+router.post('/pay-royalty', async (req, res) => {
+    const { contentHash, amount } = req.body;
+
+    try {
+        await payRoyalty(contentHash, amount);
+        res.status(200).json({ message: 'Royalty paid successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 router.post('/check-similarity', upload.single('image'), async (req, res) => {
