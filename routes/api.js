@@ -3,7 +3,8 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { registerContent, checkOwnership } = require('../controller/contentRegistry');
+const { registerContent, checkOwnership, contentRegistryABI } = require('../controller/contentRegistry');
+
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
