@@ -1,17 +1,34 @@
-<!-- public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>Image Similarity Checker</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fetch ABI</title>
 </head>
 <body>
+    <h1>Image Similarity Checker</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="image" required>
+        <button type="submit">Check Similarity</button>
+    </form>
+    <div id="result"></div>
+
     <h1>Fetch Content Registry ABI</h1>
     <button id="fetchAbiButton">Fetch ABI</button>
     <pre id="abiDisplay"></pre>
 
     <script>
+        document.getElementById('uploadForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const response = await fetch('/api/check-similarity', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+            document.getElementById('result').innerText = JSON.stringify(result, null, 2);
+        };
+
         document.getElementById('fetchAbiButton').addEventListener('click', () => {
             fetch('/api/abi')
                 .then(response => response.json())

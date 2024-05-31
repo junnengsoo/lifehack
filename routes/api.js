@@ -3,8 +3,9 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { registerContent, getContentDetails, checkOwnership, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
+const Image = require('../models/Image'); // Import the Image model
 const { createLicenseTemplate, obtainLicense, payRoyalty } = require('../controller/licenseManager');
-const { registerContent, getContentDetails, contentRegistryABI } = require('../controller/contentRegistry');
 
 
 const router = express.Router();
@@ -115,6 +116,28 @@ router.post('/pay-royalty', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+router.post('/check-similarity', upload.single('image'), async (req, res) => {
+    const filePath = req.file.path;
+
+    try {
+        const { mostSimilar, highestSimilarity } = await checkImageSimilarity(filePath);
+        if (mostSimilar) {
+            res.status(200).json({
+                message: 'Most similar image found',
+                similarity: highestSimilarity,
+                similarImage: mostSimilar
+            });
+        } else {
+            res.status(200).json({ message: 'No similar image found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    } finally {
+        fs.unlinkSync(filePath); // Clean up uploaded file
+    }
+});
+
 
 // API to get ABI
 router.get('/abi', (req, res) => {
