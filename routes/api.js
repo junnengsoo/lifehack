@@ -3,9 +3,9 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { registerContent, getContentDetails, checkOwnership, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
+const { createLicenseTemplate, obtainLicense, payRoyalty, getLicensesForContent, getUserLicenses, getLicensesForTemplate } = require('../controller/licenseManager');
+const { registerContent, getContentDetails, getCreatorContents, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
 const Image = require('../models/Image'); // Import the Image model
-const { createLicenseTemplate, obtainLicense, payRoyalty } = require('../controller/licenseManager');
 
 
 const router = express.Router();
@@ -58,19 +58,12 @@ router.post('/register', upload.single('image'), async (req, res) => {
 });
 
 // API to get content details
-router.post('/content-details', upload.single('image'), async (req, res) => {
-    const filePath = req.file.path;
-    const destPath = path.join(__dirname, '../uploads/', req.file.originalname);
+router.post('/content-details', async (req, res) => {
+    const { contentHash } = req.body;
 
     try {
-        // Move the file to the desired directory
-        fs.renameSync(filePath, destPath);
-
-        // Generate hash from the image
-        const imageHash = generateImageHash(destPath);
-
         // Get content details from the blockchain
-        const [hash, owner, timestamp] = await getContentDetails(imageHash);
+        const [hash, owner, timestamp] = await getContentDetails(contentHash);
 
         if (owner !== '0x0000000000000000000000000000000000000000') {
             res.status(200).json({ message: 'Content found', hash, owner, timestamp });
@@ -79,9 +72,6 @@ router.post('/content-details', upload.single('image'), async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
-    } finally {
-        // Clean up the file after processing
-        fs.unlinkSync(destPath);
     }
 });
 
@@ -99,23 +89,35 @@ router.post('/create-license-template', async (req, res) => {
 
 // API to obtain a license
 router.post('/obtain-license', async (req, res) => {
-    const { contentHash } = req.body;
+    const { contentHash, templateId } = req.body;
 
     try {
-        await obtainLicense(contentHash);
+        await obtainLicense(contentHash, templateId);
         res.status(200).json({ message: 'License obtained successfully' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 });
 
-// API to pay royalty
-router.post('/pay-royalty', async (req, res) => {
-    const { contentHash, amount } = req.body;
+// // API to pay royalty
+// router.post('/pay-royalty', async (req, res) => {
+//     const { contentHash, licenseIndex, amount } = req.body;
+
+//     try {
+//         await payRoyalty(contentHash, licenseIndex, amount);
+//         res.status(200).json({ message: 'Royalty paid successfully' });
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
+
+// API to get all digital assets tagged to a creator
+router.post('/creator-contents', async (req, res) => {
+    const { creatorAddress } = req.body;
 
     try {
-        await payRoyalty(contentHash, amount);
-        res.status(200).json({ message: 'Royalty paid successfully' });
+        const contents = await getCreatorContents(creatorAddress);
+        res.status(200).json(contents);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -148,6 +150,51 @@ router.get('/abi', (req, res) => {
         const abi = getContentRegistryABI();
         const transformedAbi = transformABI(abi);
         res.status(200).json(transformedAbi);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+  // API to get all licenses for a specific content
+router.post('/licenses-for-content', async (req, res) => {
+    const { contentHash } = req.body;
+    try {
+        const licenses = await getLicensesForContent(contentHash);
+        res.status(200).json(licenses);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// API to get all licenses for a specific user
+router.post('/user-licenses', async (req, res) => {
+    const { userAddress } = req.body;
+
+    try {
+        const licenses = await getUserLicenses(userAddress);
+        res.status(200).json(licenses);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// API to get all licenses issued for a specific license template
+router.post('/licenses-for-template', async (req, res) => {
+    const { contentHash, templateId } = req.body;
+
+    try {
+        const licenses = await getLicensesForTemplate(contentHash, templateId);
+        res.status(200).json(licenses);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// API to get all contents
+router.get('/all-contents', async (req, res) => {
+    try {
+        const contents = await getAllContents();
+        res.status(200).json(contents);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

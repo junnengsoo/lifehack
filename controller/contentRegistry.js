@@ -18,16 +18,6 @@ const contentRegistryAddress = require('../build/contracts/ContentRegistry.json'
 
 const contentRegistry = new web3.eth.Contract(contentRegistryABI, contentRegistryAddress);
 
-console.log(contentRegistryABI)
-
-// Function to generate image hash
-function generateImageHash(filePath) {
-    const fileBuffer = fs.readFileSync(filePath);
-    const hashSum = crypto.createHash('sha256');
-    hashSum.update(fileBuffer);
-    return hashSum.digest('hex');
-}
-
 function transformABI(abi) {
     return abi.map(item => {
         if (item.type === 'function') {
@@ -69,8 +59,21 @@ async function getContentDetails(imageHash) {
     const content = await contentRegistry.methods.getContentDetails(imageHash).call();
     return [content[0], content[1], content[2]]; // Return an array of values
 }
+
+// Function to get all contents for a creator
+async function getCreatorContents(creatorAddress) {
+    const contents = await contentRegistry.methods.getCreatorContents(creatorAddress).call();
+    return contents;
+}
+
+// Function to get all contents
+async function getAllContents() {
+    const contents = await contentRegistry.methods.getAllContents().call();
+    return contents;
+}
+
 // Function to check image similarity
-// Function to check image similarity
+
 async function checkImageSimilarity(filePath) {
     const imagesDir = path.join(__dirname, '../uploads/');
     const files = fs.readdirSync(imagesDir);
@@ -119,10 +122,11 @@ function compareImages(image1Path, image2Path) {
 
 module.exports = {
     registerContent,
-    checkOwnership,
     contentRegistryABI,
     transformABI,
     checkImageSimilarity,
     getRegisteredImages,
     getContentDetails,
+    getCreatorContents,
+    getAllContents
 };
