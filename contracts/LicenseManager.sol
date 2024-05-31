@@ -252,4 +252,8 @@ contract LicenseManager {
     function getLicense(string memory _contentHash) public view returns (License memory) {
         return licenses[_contentHash];
     }
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes

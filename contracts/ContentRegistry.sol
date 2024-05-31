@@ -27,4 +27,8 @@ contract ContentRegistry {
     function getTimestamp(string memory _hash) public view returns (uint256) {
         return contents[_hash].timestamp;
     }
+<<<<<<< Updated upstream
 }
+=======
+}
+>>>>>>> Stashed changes
