@@ -59,8 +59,15 @@ async function getCreatorContents(creatorAddress) {
     return contents;
 }
 
+// Function to get all contents
+async function getAllContents() {
+    const contents = await contentRegistry.methods.getAllContents().call();
+    return contents;
+}
+
 module.exports = {
     registerContent,
     getContentDetails,
     getCreatorContents,
+    getAllContents
 };

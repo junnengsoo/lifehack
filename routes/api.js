@@ -153,4 +153,14 @@ router.post('/licenses-for-template', async (req, res) => {
     }
 });
 
+// API to get all contents
+router.get('/all-contents', async (req, res) => {
+    try {
+        const contents = await getAllContents();
+        res.status(200).json(contents);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
