@@ -7,7 +7,6 @@ const { registerContent, checkOwnership, contentRegistryABI, checkImageSimilarit
 const Image = require('../models/Image'); // Import the Image model
 
 
-
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
 
@@ -44,14 +43,14 @@ router.post('/register', upload.single('image'), async (req, res) => {
         // Register the content on the blockchain
         await registerContent(imageHash);
 
+        // Save the image info to the database
+        const newImage = new Image({ hash: imageHash, path: destPath });
+        await newImage.save();
+
         res.status(200).json({ message: 'Content registered successfully', hash: imageHash });
     } catch (error) {
         res.status(500).json({ error: error.message });
-    } 
-    // finally {
-    //     // Clean up the file after processing
-    //     fs.unlinkSync(destPath);
-    // }
+    }
 });
 
 // API to check ownership
@@ -76,13 +75,9 @@ router.post('/check-ownership', upload.single('image'), async (req, res) => {
         }
     } catch (error) {
         res.status(500).json({ error: error.message });
-    } 
-    // finally {
-    //     // Clean up the file after processing
-    //     fs.unlinkSync(destPath);
-    // }
+    }
 });
-
+// API to check similarity
 router.post('/check-similarity', upload.single('image'), async (req, res) => {
     const filePath = req.file.path;
 
@@ -103,7 +98,6 @@ router.post('/check-similarity', upload.single('image'), async (req, res) => {
         fs.unlinkSync(filePath); // Clean up uploaded file
     }
 });
-
 
 // API to get ABI
 router.get('/abi', (req, res) => {

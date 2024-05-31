@@ -4,6 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const Jimp = require('jimp');
 const Image = require('../models/Image'); // Import the Image model
+const { imageHash, hash } = require('image-hash');
+const resemble = require('resemblejs');
+
+
 
 // Web3 setup
 const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
@@ -69,24 +73,24 @@ async function checkOwnership(imageHash) {
 function getContentRegistryABI() {
     return contentRegistryABI;
 }
-
+// Function to check image similarity
+// Function to check image similarity
 async function checkImageSimilarity(filePath) {
-    const targetImage = await Jimp.read(filePath);
-    const targetHash = await targetImage.hash();
-
-    const images = await Image.find();
+    const imagesDir = path.join(__dirname, '../uploads/');
+    const files = fs.readdirSync(imagesDir);
 
     let mostSimilar = null;
     let highestSimilarity = 0;
 
-    for (const image of images) {
-        const dbImage = await Jimp.read(image.filePath);
-        const dbHash = await dbImage.hash();
+    for (const file of files) {
+        const storedFilePath = path.join(imagesDir, file);
 
-        const similarity = Jimp.distance(targetImage, dbImage);
+        const comparison = await compareImages(filePath, storedFilePath);
+        const similarity = comparison.rawMisMatchPercentage;
+
         if (similarity > highestSimilarity) {
             highestSimilarity = similarity;
-            mostSimilar = image;
+            mostSimilar = { path: storedFilePath, similarity };
         }
     }
 
@@ -97,9 +101,24 @@ async function getRegisteredImages() {
     // This function should fetch registered images from the blockchain
     return [
         // Example format
-        { filePath: 'path/to/image1.jpg' },
+        { filePath: 'uploads/d15ee3f7-136d-4580-87e6-28166ba8feba.jpeg' },
         { filePath: 'path/to/image2.jpg' }
     ];
+}
+
+// Function to compare two images
+function compareImages(image1Path, image2Path) {
+    return new Promise((resolve, reject) => {
+        resemble(image1Path)
+            .compareTo(image2Path)
+            .onComplete(data => {
+                if (data.error) {
+                    reject(data.error);
+                } else {
+                    resolve(data);
+                }
+            });
+    });
 }
 
 module.exports = {
@@ -108,5 +127,6 @@ module.exports = {
     checkOwnership,
     contentRegistryABI,
     transformABI,
-    checkImageSimilarity
+    checkImageSimilarity,
+    getRegisteredImages
 };
