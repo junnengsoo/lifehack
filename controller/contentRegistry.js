@@ -1,9 +1,14 @@
 const Web3 = require('web3');
+<<<<<<< HEAD
+const fs = require('fs');
+const crypto = require('crypto');
+=======
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const Jimp = require('jimp');
 const Image = require('../models/Image'); // Import the Image model
+>>>>>>> 47cee8f07e204aa8a749dd9f448920fb0a9f4c58
 
 // Web3 setup
 const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
@@ -13,16 +18,6 @@ const contentRegistryABI = require('../build/contracts/ContentRegistry.json').ab
 const contentRegistryAddress = require('../build/contracts/ContentRegistry.json').networks['5777'].address; // Replace with the network ID used by Ganache
 
 const contentRegistry = new web3.eth.Contract(contentRegistryABI, contentRegistryAddress);
-
-console.log(contentRegistryABI)
-
-// Function to generate image hash
-function generateImageHash(filePath) {
-    const fileBuffer = fs.readFileSync(filePath);
-    const hashSum = crypto.createHash('sha256');
-    hashSum.update(fileBuffer);
-    return hashSum.digest('hex');
-}
 
 function transformABI(abi) {
     return abi.map(item => {
@@ -66,6 +61,18 @@ async function getContentDetails(imageHash) {
     return [content[0], content[1], content[2]]; // Return an array of values
 }
 
+<<<<<<< HEAD
+// Function to get all contents for a creator
+async function getCreatorContents(creatorAddress) {
+    const contents = await contentRegistry.methods.getCreatorContents(creatorAddress).call();
+    return contents;
+}
+
+// Function to get all contents
+async function getAllContents() {
+    const contents = await contentRegistry.methods.getAllContents().call();
+    return contents;
+=======
 async function checkImageSimilarity(filePath) {
     const targetImage = await Jimp.read(filePath);
     const targetHash = await targetImage.hash();
@@ -96,6 +103,7 @@ async function getRegisteredImages() {
         { filePath: 'path/to/image1.jpg' },
         { filePath: 'path/to/image2.jpg' }
     ];
+>>>>>>> 47cee8f07e204aa8a749dd9f448920fb0a9f4c58
 }
 
 module.exports = {
@@ -105,4 +113,6 @@ module.exports = {
     transformABI,
     checkImageSimilarity
     getContentDetails,
+    getCreatorContents,
+    getAllContents
 };

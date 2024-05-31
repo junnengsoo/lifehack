@@ -18,8 +18,7 @@ async function createLicenseTemplate(contentHash, startDate, endDate, commercial
 // Function to obtain a license
 async function obtainLicense(contentHash, templateId) {
     const accounts = await web3.eth.getAccounts();
-    const licenseTemplate = await licenseManager.methods.licenseTemplates(contentHash).call();
-    await licenseManager.methods.obtainLicense(contentHash, templateId).send({ from: accounts[0], value: licenseTemplate[templateId].licenseFee });
+    await licenseManager.methods.obtainLicense(contentHash, templateId).send({ from: accounts[0] });
 }
 
 // Function to pay royalty
@@ -28,9 +27,21 @@ async function payRoyalty(contentHash, licenseIndex, amount) {
     await licenseManager.methods.payRoyalty(contentHash, licenseIndex).send({ from: accounts[0], value: amount });
 }
 
-// Function to get all licenses for a specific content and user
-async function getAllLicenses(contentHash, userAddress) {
-    const licenses = await licenseManager.methods.getAllLicenses(contentHash, userAddress).call();
+// Function to get all licenses for a specific content
+async function getLicensesForContent(contentHash) {
+    const licenses = await licenseManager.methods.getLicensesForContent(contentHash).call();
+    return licenses;
+}
+
+// Function to get all licenses acquired for a specific user
+async function getUserLicenses(userAddress) {
+    const licenses = await licenseManager.methods.getUserLicenses(userAddress).call();
+    return licenses;
+}
+
+// Function to get all licenses issued for a specific license template
+async function getLicensesForTemplate(contentHash, templateId) {
+    const licenses = await licenseManager.methods.getLicensesForTemplate(contentHash, templateId).call();
     return licenses;
 }
 
@@ -38,5 +49,7 @@ module.exports = {
     createLicenseTemplate,
     obtainLicense,
     payRoyalty,
-    getAllLicenses
+    getLicensesForContent,
+    getUserLicenses,
+    getLicensesForTemplate,
 };
