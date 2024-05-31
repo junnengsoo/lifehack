@@ -9,8 +9,6 @@ const contentRegistryAddress = require('../build/contracts/ContentRegistry.json'
 
 const contentRegistry = new web3.eth.Contract(contentRegistryABI, contentRegistryAddress);
 
-<<<<<<< Updated upstream:controller/contentRegistry.js
-=======
 console.log(contentRegistryABI)
 
 // Function to generate image hash
@@ -41,7 +39,6 @@ function transformABI(abi) {
     });
 }
 
->>>>>>> Stashed changes:controller/blockchain.js
 // Function to register content
 async function registerContent(imageHash) {
     const accounts = await web3.eth.getAccounts();
@@ -71,12 +68,7 @@ function getContentRegistryABI() {
 module.exports = {
     getContentRegistryABI,
     registerContent,
-<<<<<<< Updated upstream:controller/contentRegistry.js
-    checkOwnership
-};
-=======
     checkOwnership,
     contentRegistryABI,
     transformABI,
 };
->>>>>>> Stashed changes:controller/blockchain.js
