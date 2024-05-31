@@ -1,13 +1,9 @@
 const express = require('express');
 const multer = require('multer');
 const fs = require('fs');
-<<<<<<< Updated upstream
 const path = require('path');
 const crypto = require('crypto');
 const { registerContent, checkOwnership } = require('../controller/contentRegistry');
-=======
-const { registerContent, checkOwnership, contentRegistryABI } = require('../controller/blockchain');
->>>>>>> Stashed changes
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
@@ -84,9 +80,6 @@ router.post('/check-ownership', upload.single('image'), async (req, res) => {
     // }
 });
 
-<<<<<<< Updated upstream
-module.exports = router;
-=======
 // API to get ABI
 router.get('/abi', (req, res) => {
     try {
@@ -99,4 +92,3 @@ router.get('/abi', (req, res) => {
 });
 
 module.exports = router;
->>>>>>> Stashed changes
