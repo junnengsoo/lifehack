@@ -4,21 +4,10 @@ const licenseManagerArtifact = require('./build/contracts/LicenseManager.json');
 
 const init = async () => {
     try {
-<<<<<<< Updated upstream
-        // 1. Connect to local Ethereum node (Ganache)
-        const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
-
-        // 2. Get network ID
-        const id = await web3.eth.net.getId();
-        console.log(`Network ID: ${id}`);
-
-        // 3. Get deployed contract details
-=======
         const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
         const id = await web3.eth.net.getId();
         console.log(`Network ID: ${id}`);
 
->>>>>>> Stashed changes
         const contentRegistryNetwork = contentRegistryArtifact.networks[id];
         const licenseManagerNetwork = licenseManagerArtifact.networks[id];
 
@@ -26,52 +15,14 @@ const init = async () => {
             throw new Error(`No contract deployed on network with ID ${id}`);
         }
 
-<<<<<<< Updated upstream
-        // 4. Create contract instances
-        const contentRegistry = new web3.eth.Contract(
-            contentRegistryArtifact.abi,
-            contentRegistryNetwork.address
-        );
-        const licenseManager = new web3.eth.Contract(
-            licenseManagerArtifact.abi,
-            licenseManagerNetwork.address
-        );
-
-        // 5. Get accounts
-=======
         const contentRegistry = new web3.eth.Contract(contentRegistryArtifact.abi, contentRegistryNetwork.address);
         const licenseManager = new web3.eth.Contract(licenseManagerArtifact.abi, licenseManagerNetwork.address);
 
->>>>>>> Stashed changes
         const accounts = await web3.eth.getAccounts();
         if (accounts.length === 0) {
             throw new Error('No accounts found. Ensure your Ethereum client is configured correctly.');
         }
 
-<<<<<<< Updated upstream
-        // Content Creator: Register content
-        const contentHash = "exampleHash";  // Replace with actual content hash
-        console.log(`Registering content with hash: ${contentHash}`);
-
-        // 6. Register content
-        await contentRegistry.methods.registerContent(contentHash).send({
-            from: accounts[0],
-            gas: 3000000 // Set a higher gas limit
-        });
-
-        // Content Creator: Create license template
-        console.log(`Creating license template for content hash: ${contentHash}`);
-        await licenseManager.methods.createLicenseTemplate(
-            contentHash,
-            Math.floor(Date.now() / 1000),  // Start date (current time)
-            Math.floor(Date.now() / 1000) + 31536000,  // End date (1 year from now)
-            true,  // Commercial use allowed
-            false,  // Modification not allowed
-            false,  // Non-exclusive license
-            web3.utils.toWei('1', 'ether'),  // License fee (1 ETH)
-            web3.utils.toWei('0.1', 'ether'),  // Royalty fee (0.1 ETH)
-            "Example Attribution"  // Attribution text
-=======
         const contentHash = "exampleHash"; // Replace with actual content hash
         console.log(`Registering content with hash: ${contentHash}`);
 
@@ -91,32 +42,19 @@ const init = async () => {
             web3.utils.toWei('1', 'ether'),
             web3.utils.toWei('0.1', 'ether'),
             "Example Attribution"
->>>>>>> Stashed changes
         ).send({
             from: accounts[0],
             gas: 3000000
         });
 
-<<<<<<< Updated upstream
-        // User: Obtain license for the content
-=======
->>>>>>> Stashed changes
         const licenseeAccount = accounts[1];
         console.log(`Obtaining license for content hash: ${contentHash}`);
         await licenseManager.methods.obtainLicense(contentHash).send({
             from: licenseeAccount,
-<<<<<<< Updated upstream
-            value: web3.utils.toWei('1', 'ether'),  // License fee payment
-            gas: 3000000
-        });
-
-        // Retrieve and display the license details
-=======
             value: web3.utils.toWei('1', 'ether'),
             gas: 3000000
         });
 
->>>>>>> Stashed changes
         const license = await licenseManager.methods.getLicense(contentHash).call({ from: licenseeAccount });
         console.log('License details retrieved:');
         console.log('  Content Hash:', license.contentHash);
@@ -129,10 +67,6 @@ const init = async () => {
         console.log('  License Fee:', web3.utils.fromWei(license.licenseFee, 'ether'));
         console.log('  Royalty:', web3.utils.fromWei(license.royalty, 'ether'));
         console.log('  Attribution Text:', license.attributionText);
-<<<<<<< Updated upstream
-
-=======
->>>>>>> Stashed changes
     } catch (error) {
         console.error('Error interacting with the contract:', error);
     }
