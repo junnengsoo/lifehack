@@ -93,17 +93,17 @@ router.post('/obtain-license', async (req, res) => {
     }
 });
 
-// API to pay royalty
-router.post('/pay-royalty', async (req, res) => {
-    const { contentHash, licenseIndex, amount } = req.body;
+// // API to pay royalty
+// router.post('/pay-royalty', async (req, res) => {
+//     const { contentHash, licenseIndex, amount } = req.body;
 
-    try {
-        await payRoyalty(contentHash, licenseIndex, amount);
-        res.status(200).json({ message: 'Royalty paid successfully' });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
+//     try {
+//         await payRoyalty(contentHash, licenseIndex, amount);
+//         res.status(200).json({ message: 'Royalty paid successfully' });
+//     } catch (error) {
+//         res.status(500).json({ error: error.message });
+//     }
+// });
 
 // API to get all digital assets tagged to a creator
 router.post('/creator-contents', async (req, res) => {
