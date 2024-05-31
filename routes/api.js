@@ -4,7 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { createLicenseTemplate, obtainLicense, payRoyalty, getLicensesForContent, getUserLicenses, getLicensesForTemplate } = require('../controller/licenseManager');
-const { registerContent, getContentDetails, getCreatorContents, contentRegistryABI } = require('../controller/contentRegistry');
+const { registerContent, getContentDetails, getCreatorContents, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
+const Image = require('../models/Image'); // Import the Image model
+
 
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
@@ -114,6 +116,27 @@ router.post('/creator-contents', async (req, res) => {
         res.status(200).json(contents);
     } catch (error) {
         res.status(500).json({ error: error.message });
+    }
+});
+
+router.post('/check-similarity', upload.single('image'), async (req, res) => {
+    const filePath = req.file.path;
+
+    try {
+        const { mostSimilar, highestSimilarity } = await checkImageSimilarity(filePath);
+        if (mostSimilar) {
+            res.status(200).json({
+                message: 'Most similar image found',
+                similarity: highestSimilarity,
+                similarImage: mostSimilar
+            });
+        } else {
+            res.status(200).json({ message: 'No similar image found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    } finally {
+        fs.unlinkSync(filePath); // Clean up uploaded file
     }
 });
 
