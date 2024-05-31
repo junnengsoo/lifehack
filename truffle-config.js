@@ -68,6 +68,7 @@ module.exports = {
       host: "127.0.0.1",     // Localhost (default: none)
       port: 7545,            // Ganache GUI port
       network_id: "5777",    // Ganache network id
+      // from: 0x2d311CA47CF2D86E8cc65514Cb9721875EB43289,       // Account to send transactions from (default: accounts[0])
     },
     //
     // An additional network, but with some advanced options…

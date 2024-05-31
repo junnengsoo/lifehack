@@ -7,8 +7,9 @@
     "test": "truffle test"
   },
   "dependencies": {
-    "web3": "^1.5.2",
-    "truffle": "^5.3.14"
+    "@truffle/hdwallet-provider": "^2.1.15",
+    "truffle": "^5.3.14",
+    "web3": "^1.10.4"
   },
   "devDependencies": {
     "ganache-cli": "^6.12.2"
