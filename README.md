@@ -114,7 +114,8 @@ await ContentRegistry.registerContent("contentHash", { from: accounts[0] });
 
 // Example: Get content details
 const details = await ContentRegistry.getContentDetails("contentHash");
-console.log(details);```
+console.log(details);
+```
 
 
 
