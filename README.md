@@ -16,6 +16,7 @@ Locate truffle-config.json from Lifehack root directory
 Click Start
 
 
+
 Clone the Repository:
 `git clone [https://github.com/yourusername/blockchain-image-protection.git](https://github.com/junnengsoo/lifehack.git)`
 
@@ -96,6 +97,26 @@ Summary
 ```
 
 In Ganache GUI's Contracts Tab, ContentRegistry and LincenseManager are now deployed.
+
+Interacting with Contracts
+
+Open Truffle Console:
+`truffle console`
+
+Get Contract Instances:
+`const ContentRegistry = await artifacts.require("ContentRegistry").deployed();
+const LicenseManager = await artifacts.require("LicenseManager").deployed();`
+
+Call Contract Methods:
+`// Example: Register content
+await ContentRegistry.registerContent("contentHash", { from: accounts[0] });
+
+// Example: Get content details
+const details = await ContentRegistry.getContentDetails("contentHash");
+console.log(details);`
+
+
+
 
 
 
