@@ -1,14 +1,12 @@
 // server.js
 const express = require('express');
 const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
 const path = require('path');
 const apiRoutes = require('./routes/api');
 const app = express();
 const port = 3001;
 
-// MongoDB setup
-// mongoose.connect('mongodb://localhost:27017/lifehack', { useNewUrlParser: true, useUnifiedTopology: true });
+
 
 // Middleware
 app.use(bodyParser.json());

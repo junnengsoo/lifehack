@@ -8,8 +8,6 @@
 <body>
     <h1>Content Registry and Similarity Checker</h1>
 
-    
-
     <h2>Image Similarity Checker</h2>
     <form id="uploadForm" enctype="multipart/form-data">
         <input type="file" name="image" required>
@@ -22,6 +20,7 @@
     <pre id="abiDisplay"></pre>
 
     <script>
+        
         document.getElementById('fetchAbiButton').addEventListener('click', () => {
             fetch('/api/abi')
                 .then(response => response.json())

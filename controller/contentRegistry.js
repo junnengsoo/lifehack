@@ -6,7 +6,7 @@ const Jimp = require('jimp');
 const Image = require('../models/Image'); // Import the Image model
 const { imageHash, hash } = require('image-hash');
 const resemble = require('resemblejs');
-
+const similarity = require('image-similarity');
 
 
 // Web3 setup
@@ -75,26 +75,42 @@ async function getAllContents() {
 // Function to check image similarity
 
 async function checkImageSimilarity(filePath) {
-    const imagesDir = path.join(__dirname, '../uploads/');
-    const files = fs.readdirSync(imagesDir);
-
+    const uploadsDir = path.join(__dirname, '../uploads');
+    const uploadedImage = await Jimp.read(filePath);
     let mostSimilar = null;
     let highestSimilarity = 0;
+    const similarityThreshold = 0.995; // Similarity threshold for copyright infringement
+    const power = 9;
+
+    console.log(`Uploaded image path: ${filePath}`);
+
+    const files = fs.readdirSync(uploadsDir);
 
     for (const file of files) {
-        const storedFilePath = path.join(imagesDir, file);
+        const fileToCompare = path.join(uploadsDir, file);
+        if (!fs.lstatSync(fileToCompare).isFile()) continue; // Skip directories
 
-        const comparison = await compareImages(filePath, storedFilePath);
-        const similarity = comparison.rawMisMatchPercentage;
+        const comparisonImage = await Jimp.read(fileToCompare);
 
-        if (similarity > highestSimilarity) {
-            highestSimilarity = similarity;
-            mostSimilar = { path: storedFilePath, similarity };
+        const diff = Jimp.diff(uploadedImage, comparisonImage);
+        let similarityScore = 1 - diff.percent;
+
+        similarityScore = Math.pow(similarityScore, power);
+
+        console.log(`Comparing against: ${fileToCompare}, similarity: ${similarityScore}`);
+
+        if (similarityScore > highestSimilarity) {
+            highestSimilarity = similarityScore;
+            mostSimilar = fileToCompare;
         }
     }
 
-    return { mostSimilar, highestSimilarity };
+    console.log(`Most similar image: ${mostSimilar}, Highest similarity: ${highestSimilarity}`);
+
+    return { mostSimilar, highestSimilarity, isCopyrightInfringed: highestSimilarity > similarityThreshold };
 }
+
+
 
 async function getRegisteredImages() {
     // This function should fetch registered images from the blockchain

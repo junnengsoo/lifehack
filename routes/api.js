@@ -4,12 +4,41 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const { createLicenseTemplate, obtainLicense, payRoyalty, getLicensesForContent, getUserLicenses, getLicensesForTemplate } = require('../controller/licenseManager');
-const { registerContent, getContentDetails, getCreatorContents, getAllContents, contentRegistryABI } = require('../controller/contentRegistry');
-const { checkImageSimilarity } = require('../controller/blockchain');
+const { registerContent, getContentDetails, getCreatorContents, getAllContents, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
+// const { checkImageSimilarity } = require('../controller/blockchain');
 
 const Image = require('../models/Image'); // Import the Image model
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
+
+// API to check similarity
+router.post('/check-similarity', upload.single('image'), async (req, res) => {
+    const tempDir = path.join(__dirname, '../uploads/temp');
+    const mainUploadsDir = path.join(__dirname, '../uploads');
+    const filePath = path.join(tempDir, req.file.filename);
+
+    try {
+        // Move the uploaded image to the temp directory
+        fs.renameSync(req.file.path, filePath);
+
+        // Perform similarity check excluding the temp directory
+        const { mostSimilar, highestSimilarity, isCopyrightInfringed } = await checkImageSimilarity(filePath);
+        if (mostSimilar) {
+            res.status(200).json({
+                message: 'A similar image has been found',
+                similarity: highestSimilarity ,
+                similarImage: mostSimilar,
+                isCopyrightInfringed: isCopyrightInfringed
+            });
+        } else {
+            res.status(200).json({ message: 'No similar image found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    } finally {
+        setTimeout(() => fs.unlinkSync(filePath), 5000); // Clean up the uploaded file after sending the response
+    }
+});
 
 // Helper function to generate image hash MOVE TO CONTROLLER LATER
 function generateImageHash(filePath) {
@@ -122,27 +151,7 @@ router.post('/creator-contents', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-// API to check similarity
-router.post('/check-similarity', upload.single('image'), async (req, res) => {
-    const filePath = req.file.path;
 
-    try {
-        const { mostSimilar, highestSimilarity } = await checkImageSimilarity(filePath);
-        if (mostSimilar) {
-            res.status(200).json({
-                message: 'Most similar image found',
-                similarity: highestSimilarity,
-                similarImage: mostSimilar
-            });
-        } else {
-            res.status(200).json({ message: 'No similar image found' });
-        }
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    } finally {
-        fs.unlinkSync(filePath); // Clean up uploaded file
-    }
-});
 
 // API to get ABI
 router.get('/abi', (req, res) => {
