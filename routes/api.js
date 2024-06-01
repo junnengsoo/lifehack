@@ -3,11 +3,9 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-// const { checkImageSimilarity } = require('../controller/blockchain');
-
 const { createLicenseTemplate, obtainLicense, payRoyalty, getLicensesForContent, getUserLicenses, getLicensesForTemplate } = require('../controller/licenseManager');
-const { registerContent, getContentDetails, getCreatorContents, getAllContents, contentRegistryABI } = require('../controller/contentRegistry');
-const { checkImageSimilarity } = require('../controller/blockchain');
+const { registerContent, getContentDetails, getCreatorContents, getAllContents, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
+// const { checkImageSimilarity } = require('../controller/blockchain');
 
 const Image = require('../models/Image'); // Import the Image model
 const router = express.Router();
