@@ -5,7 +5,7 @@ const path = require('path');
 const crypto = require('crypto');
 const Web3 = require('web3');
 const { createLicenseTemplate, obtainLicense, getLicensesForContent, getUserLicenses, getLicensesForTemplate } = require('../controller/licenseManager');
-const { registerContent, getContentDetails, getCreatorContents, getAllContents, contentRegistryABI } = require('../controller/contentRegistry');
+const { registerContent, getContentDetails, getCreatorContents, getAllContents, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
 
 const Image = require('../models/Image'); // Import the Image model
 

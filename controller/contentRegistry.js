@@ -6,11 +6,7 @@ const Jimp = require('jimp');
 const Image = require('../models/Image'); // Import the Image model
 const { imageHash, hash } = require('image-hash');
 const resemble = require('resemblejs');
-<<<<<<< HEAD
-=======
 const similarity = require('image-similarity');
-
->>>>>>> fcfecc0f4e57cd9c2a81b4ee9eff6ce671387633
 
 // Web3 setup
 const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
