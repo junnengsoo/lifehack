@@ -33,21 +33,20 @@ router.get('/abi', (req, res) => {
     res.status(200).json(contentRegistryABI);
 });
 
+// API to register content
 router.post('/register', upload.single('image'), async (req, res) => {
     const filePath = req.file.path;
     const destPath = path.join(__dirname, '../uploads/', `${req.file.filename}.jpg`);
     const { account, signature } = req.body;
 
-    console.log(req.body)
-
-    console.log("Received request to register content");
-
+    console.log(req.body);
     try {
+        // Move the file to the desired directory before any blockchain operation
+        fs.renameSync(filePath, destPath);
+
         // Verify the signature
-        console.log("Verifying signature");
         const message = "Please sign this message to verify your address.";
         const recoveredAddress = web3.eth.accounts.recover(message, signature);
-
         console.log("Recovered address:", recoveredAddress);
 
         if (!recoveredAddress || !account) {
@@ -60,13 +59,8 @@ router.post('/register', upload.single('image'), async (req, res) => {
             return res.status(400).json({ error: 'Signature verification failed' });
         }
 
-        // Move the file to the desired directory
-        fs.renameSync(filePath, destPath);
-        console.log("File moved to:", destPath);
-
         // Generate hash from the image
         const imageHash = generateImageHash(destPath);
-        console.log("Generated image hash:", imageHash);
 
         // Check if the content is already registered on the blockchain
         try {
@@ -77,7 +71,6 @@ router.post('/register', upload.single('image'), async (req, res) => {
         } catch (error) {
             if (error.message !== "Content not found") {
                 console.error("Error checking content details:", error.message);
-                throw error; // Re-throw if it's a different error
             }
             // Continue with registration if content not found
             console.log("Content not found, proceeding with registration");
@@ -87,19 +80,10 @@ router.post('/register', upload.single('image'), async (req, res) => {
         await registerContent(imageHash, account);
         console.log("Content registered on the blockchain");
 
-        // Save the image info to the database
-        const newImage = new Image({ hash: imageHash, path: destPath, owner: account });
-        await newImage.save();
-        console.log("Image info saved to the database");
-
         res.status(200).json({ message: 'Content registered successfully', hash: imageHash });
     } catch (error) {
         console.error("Error processing request:", error.message);
         res.status(500).json({ error: error.message });
-    } finally {
-        // Clean up the file after processing
-        fs.unlinkSync(filePath);
-        console.log("Temporary file deleted:", destPath);
     }
 });
 
