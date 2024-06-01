@@ -7,8 +7,6 @@ const Image = require('../models/Image'); // Import the Image model
 const { imageHash, hash } = require('image-hash');
 const resemble = require('resemblejs');
 
-
-
 // Web3 setup
 const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
 
@@ -39,10 +37,7 @@ function transformABI(abi) {
 }
 
 // Function to register content
-async function registerContent(imageHash) {
-    const accounts = await web3.eth.getAccounts();
-    const from = accounts[0];
-
+async function registerContent(imageHash, from) {
     // Estimate gas required for the transaction
     const gasEstimate = await contentRegistry.methods.registerContent(imageHash).estimateGas({ from });
 

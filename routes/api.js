@@ -3,15 +3,19 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { createLicenseTemplate, obtainLicense, payRoyalty, getLicensesForContent, getUserLicenses, getLicensesForTemplate } = require('../controller/licenseManager');
+const Web3 = require('web3');
+const { createLicenseTemplate, obtainLicense, getLicensesForContent, getUserLicenses, getLicensesForTemplate } = require('../controller/licenseManager');
 const { registerContent, getContentDetails, getCreatorContents, getAllContents, contentRegistryABI } = require('../controller/contentRegistry');
 const { checkImageSimilarity } = require('../controller/blockchain');
-
 const Image = require('../models/Image'); // Import the Image model
+
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
 
-// Helper function to generate image hash MOVE TO CONTROLLER LATER
+// Initialize Web3
+const web3 = new Web3(new Web3.providers.HttpProvider('http://127.0.0.1:7545'));
+
+// Helper function to generate image hash
 function generateImageHash(filePath) {
     const fileBuffer = fs.readFileSync(filePath);
     const hashSum = crypto.createHash('sha256');
@@ -29,40 +33,73 @@ router.get('/abi', (req, res) => {
     res.status(200).json(contentRegistryABI);
 });
 
-// API to register content
 router.post('/register', upload.single('image'), async (req, res) => {
     const filePath = req.file.path;
     const destPath = path.join(__dirname, '../uploads/', `${req.file.filename}.jpg`);
     const { account, signature } = req.body;
 
+    console.log(req.body)
+
+    console.log("Received request to register content");
+
     try {
         // Verify the signature
+        console.log("Verifying signature");
         const message = "Please sign this message to verify your address.";
-        const recoveredAddress = await web3.eth.personal.ecRecover(message, signature);
+        const recoveredAddress = web3.eth.accounts.recover(message, signature);
+
+        console.log("Recovered address:", recoveredAddress);
+
+        if (!recoveredAddress || !account) {
+            console.log("Invalid recovered address or account");
+            return res.status(400).json({ error: 'Invalid recovered address or account' });
+        }
 
         if (recoveredAddress.toLowerCase() !== account.toLowerCase()) {
+            console.log("Signature verification failed");
             return res.status(400).json({ error: 'Signature verification failed' });
         }
 
         // Move the file to the desired directory
         fs.renameSync(filePath, destPath);
+        console.log("File moved to:", destPath);
 
         // Generate hash from the image
         const imageHash = generateImageHash(destPath);
+        console.log("Generated image hash:", imageHash);
+
+        // Check if the content is already registered on the blockchain
+        try {
+            console.log("Checking if content is already registered");
+            const contentDetails = await getContentDetails(imageHash);
+            console.log("Content already registered:", contentDetails);
+            return res.status(400).json({ error: 'Content already registered', details: contentDetails });
+        } catch (error) {
+            if (error.message !== "Content not found") {
+                console.error("Error checking content details:", error.message);
+                throw error; // Re-throw if it's a different error
+            }
+            // Continue with registration if content not found
+            console.log("Content not found, proceeding with registration");
+        }
 
         // Register the content on the blockchain
         await registerContent(imageHash, account);
+        console.log("Content registered on the blockchain");
 
         // Save the image info to the database
         const newImage = new Image({ hash: imageHash, path: destPath, owner: account });
         await newImage.save();
+        console.log("Image info saved to the database");
 
         res.status(200).json({ message: 'Content registered successfully', hash: imageHash });
     } catch (error) {
+        console.error("Error processing request:", error.message);
         res.status(500).json({ error: error.message });
     } finally {
         // Clean up the file after processing
-        fs.unlinkSync(destPath);
+        fs.unlinkSync(filePath);
+        console.log("Temporary file deleted:", destPath);
     }
 });
 
@@ -108,18 +145,6 @@ router.post('/obtain-license', async (req, res) => {
     }
 });
 
-// // API to pay royalty
-// router.post('/pay-royalty', async (req, res) => {
-//     const { contentHash, licenseIndex, amount } = req.body;
-
-//     try {
-//         await payRoyalty(contentHash, licenseIndex, amount);
-//         res.status(200).json({ message: 'Royalty paid successfully' });
-//     } catch (error) {
-//         res.status(500).json({ error: error.message });
-//     }
-// });
-
 // API to get all digital assets tagged to a creator
 router.post('/creator-contents', async (req, res) => {
     const { creatorAddress } = req.body;
@@ -131,6 +156,7 @@ router.post('/creator-contents', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
 // API to check similarity
 router.post('/check-similarity', upload.single('image'), async (req, res) => {
     const filePath = req.file.path;
@@ -164,7 +190,7 @@ router.get('/abi', (req, res) => {
     }
 });
 
-  // API to get all licenses for a specific content
+// API to get all licenses for a specific content
 router.post('/licenses-for-content', async (req, res) => {
     const { contentHash } = req.body;
     try {
