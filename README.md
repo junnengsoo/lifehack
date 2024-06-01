@@ -5,6 +5,14 @@ Ensure you have the following installed:
 - Truffle
 - Ganache (Download the GUI version from Google)
 
+on Ganache:
+Click New Workspace (Ethereum)
+Add Project 
+Locate truffle-config.json from Lifehack root directory
+Click Start
+
+
+
 Clone the Repository:
 `git clone [https://github.com/yourusername/blockchain-image-protection.git](https://github.com/junnengsoo/lifehack.git)`
 
