@@ -104,16 +104,17 @@ Open Truffle Console:
 `truffle console`
 
 Get Contract Instances:
-`const ContentRegistry = await artifacts.require("ContentRegistry").deployed();
-const LicenseManager = await artifacts.require("LicenseManager").deployed();`
+`const ContentRegistry = await artifacts.require("ContentRegistry").deployed();`
+`const LicenseManager = await artifacts.require("LicenseManager").deployed();`
 
 Call Contract Methods:
-`// Example: Register content
+```bash
+// Example: Register content
 await ContentRegistry.registerContent("contentHash", { from: accounts[0] });
 
 // Example: Get content details
 const details = await ContentRegistry.getContentDetails("contentHash");
-console.log(details);`
+console.log(details);```
 
 
 
