@@ -6,9 +6,13 @@ Ensure you have the following installed:
 - Ganache (Download the GUI version from Google)
 
 on Ganache:
+
 Click New Workspace (Ethereum)
+
 Add Project 
+
 Locate truffle-config.json from Lifehack root directory
+
 Click Start
 
 
