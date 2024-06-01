@@ -70,11 +70,15 @@ router.post('/register', upload.single('image'), async (req, res) => {
     const { account, signature } = req.body;
 
     console.log(req.body);
+    console.log("Received request to register content");
+
     try {
         // Move the file to the desired directory before any blockchain operation
         fs.renameSync(filePath, destPath);
+        console.log("File moved to:", destPath);
 
         // Verify the signature
+        console.log("Verifying signature");
         const message = "Please sign this message to verify your address.";
         const recoveredAddress = web3.eth.accounts.recover(message, signature);
         console.log("Recovered address:", recoveredAddress);
@@ -91,29 +95,45 @@ router.post('/register', upload.single('image'), async (req, res) => {
 
         // Generate hash from the image
         const imageHash = generateImageHash(destPath);
+        console.log("Generated image hash:", imageHash);
 
         // Check if the content is already registered on the blockchain
+        console.log("Checking if content is already registered");
         try {
-            console.log("Checking if content is already registered");
             const contentDetails = await getContentDetails(imageHash);
             console.log("Content already registered:", contentDetails);
             return res.status(400).json({ error: 'Content already registered', details: contentDetails });
         } catch (error) {
-            if (error.message !== "Content not found") {
+            if (error.message.includes("Content not found")) {
+                // Continue with registration if content not found
+                console.log("Content not found, proceeding with registration");
+            } else {
                 console.error("Error checking content details:", error.message);
+                throw error; // Re-throw if it's a different error
             }
-            // Continue with registration if content not found
-            console.log("Content not found, proceeding with registration");
         }
 
         // Register the content on the blockchain
         await registerContent(imageHash, account);
         console.log("Content registered on the blockchain");
 
+        // Save the image info to the database
+        const newImage = new Image({ hash: imageHash, path: destPath, owner: account });
+        await newImage.save();
+        console.log("Image info saved to the database");
+
         res.status(200).json({ message: 'Content registered successfully', hash: imageHash });
     } catch (error) {
         console.error("Error processing request:", error.message);
         res.status(500).json({ error: error.message });
+    } finally {
+        // try {
+        //     // Clean up the file after processing
+        //     fs.unlinkSync(destPath);
+        //     console.log("Temporary file deleted:", destPath);
+        // } catch (error) {
+        //     console.error("Error deleting temporary file:", error.message);
+        // }
     }
 });
 
@@ -124,9 +144,11 @@ router.post('/content-details', async (req, res) => {
     try {
         // Get content details from the blockchain
         const [hash, owner, timestamp] = await getContentDetails(contentHash);
+        console.log(hash, owner, timestamp)
+        const url = `/uploads/${hash}.jpg`;
 
         if (owner !== '0x0000000000000000000000000000000000000000') {
-            res.status(200).json({ message: 'Content found', hash, owner, timestamp });
+            res.status(200).json({ message: 'Content found', hash, owner, timestamp, url });
         } else {
             res.status(404).json({ message: 'No content found for the given hash', hash });
         }
@@ -137,6 +159,7 @@ router.post('/content-details', async (req, res) => {
 
 // API to create a license template
 router.post('/create-license-template', async (req, res) => {
+    console.log(req.body);
     const { contentHash, startDate, endDate, commercialUse, modificationAllowed, exclusive, licenseFee, royalty, attributionText } = req.body;
 
     try {
@@ -225,6 +248,20 @@ router.get('/all-contents', async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+});
+
+// API to get all images
+router.get('/images', (req, res) => {
+  const files = fs.readdirSync(path.join(__dirname, '../uploads'));
+
+  const images = files
+    .filter((file) => fs.statSync(path.join(__dirname, "../uploads", file)).isFile())
+    .map((file) => ({
+      name: path.parse(file).name,
+      url: `/uploads/${file}`, // URL to access the image
+    }));
+    console.log(images);
+  res.status(200).json(images);
 });
 
 module.exports = router;

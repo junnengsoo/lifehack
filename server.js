@@ -6,16 +6,15 @@ const apiRoutes = require('./routes/api');
 const app = express();
 const port = 3001;
 
-<<<<<<< HEAD
 // MongoDB setup
 // mongoose.connect('mongodb://localhost:27017/lifehack', { useNewUrlParser: true, useUnifiedTopology: true });
-=======
-
->>>>>>> fcfecc0f4e57cd9c2a81b4ee9eff6ce671387633
 
 // Middleware
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+const uploadsPath = path.join(__dirname, "uploads");
+app.use("/uploads", express.static(uploadsPath));
 
 // Routes
 app.use('/api', apiRoutes);
