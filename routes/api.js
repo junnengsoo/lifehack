@@ -33,8 +33,17 @@ router.get('/abi', (req, res) => {
 router.post('/register', upload.single('image'), async (req, res) => {
     const filePath = req.file.path;
     const destPath = path.join(__dirname, '../uploads/', `${req.file.filename}.jpg`);
+    const { account, signature } = req.body;
 
     try {
+        // Verify the signature
+        const message = "Please sign this message to verify your address.";
+        const recoveredAddress = await web3.eth.personal.ecRecover(message, signature);
+
+        if (recoveredAddress.toLowerCase() !== account.toLowerCase()) {
+            return res.status(400).json({ error: 'Signature verification failed' });
+        }
+
         // Move the file to the desired directory
         fs.renameSync(filePath, destPath);
 
@@ -42,10 +51,10 @@ router.post('/register', upload.single('image'), async (req, res) => {
         const imageHash = generateImageHash(destPath);
 
         // Register the content on the blockchain
-        await registerContent(imageHash);
+        await registerContent(imageHash, account);
 
         // Save the image info to the database
-        const newImage = new Image({ hash: imageHash, path: destPath });
+        const newImage = new Image({ hash: imageHash, path: destPath, owner: account });
         await newImage.save();
 
         res.status(200).json({ message: 'Content registered successfully', hash: imageHash });
