@@ -3,12 +3,11 @@ const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
-const { createLicenseTemplate, obtainLicense, payRoyalty, getLicensesForContent, getUserLicenses, getLicensesForTemplate, registerContent } = require('../controller/licenseManager');
-const { getContentDetails, getCreatorContents, getAllContents, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
+const { createLicenseTemplate, obtainLicense, payRoyalty, getLicensesForContent, getUserLicenses, getLicensesForTemplate } = require('../controller/licenseManager');
+const { registerContent, getContentDetails, getCreatorContents, getAllContents, contentRegistryABI, checkImageSimilarity } = require('../controller/contentRegistry');
 // const { checkImageSimilarity } = require('../controller/blockchain');
+
 const Image = require('../models/Image'); // Import the Image model
-
-
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
 
