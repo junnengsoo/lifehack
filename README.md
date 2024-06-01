@@ -1,3 +1,10 @@
+### Prerequisites
+Ensure you have the following installed:
+- Node.js
+- npm
+- Truffle
+- Ganache (Download the GUI version from Google)
+
 Clone the Repository:
 `git clone [https://github.com/yourusername/blockchain-image-protection.git](https://github.com/junnengsoo/lifehack.git)`
 
@@ -14,6 +21,10 @@ Run Migrations:
 `truffle migrate --reset`
 
 Run Ganache locally, check for host and port number and adjust `truffle-config.js` accordingly.
+
+Running the Server `node server.js`
+
+
 
 # API Calls
 
