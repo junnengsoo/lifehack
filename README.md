@@ -16,7 +16,6 @@ Locate truffle-config.json from Lifehack root directory
 Click Start
 
 
-
 Clone the Repository:
 `git clone [https://github.com/yourusername/blockchain-image-protection.git](https://github.com/junnengsoo/lifehack.git)`
 
@@ -93,6 +92,10 @@ Summary
 =======
 > Total deployments:   2
 > Final cost:          0.01645438530715482 ETH
+
+```
+
+In Ganache GUI's Contracts Tab, ContentRegistry and LincenseManager are now deployed.
 
 
 
